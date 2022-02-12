@@ -27,6 +27,7 @@ public class ShoppingServiceImpl implements ShoppingService {
             return price;
         }
 
+
         Date date = new Date();
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Paris"));
         cal.setTime(date);
@@ -37,51 +38,19 @@ public class ShoppingServiceImpl implements ShoppingService {
         // if we are in winter or summer discounts periods
         if (isDiscountPeriod(cal)) {
 
-            for (int i = 0; i < body.getItems().length; i++) {
-                Item it = body.getItems()[i];
-
-                switch (it.getType()) {
-                    case TSHIRT:
-                        price += 30 * it.getNb() * discount;
-                        break;
-                    case DRESS:
-                        price += 50 * it.getNb() * 0.8 * discount;
-                        break;
-                    case JACKET:
-                        price += 100 * it.getNb() * 0.9 * discount;
-                        break;
-                    default:
-                        break;
-                }
+            for (Item it : body.getItems()) {
+                price += it.getType().getPrice() * it.getNb() * discount * it.getType().getDiscountPeriodRate();
             }
         } else {
-            for (int i = 0; i < body.getItems().length; i++) {
-                Item it = body.getItems()[i];
-
-                switch (it.getType()) {
-                    case DRESS:
-                        price += 50 * it.getNb() * discount;
-                        break;
-                    case JACKET:
-                        price += 100 * it.getNb() * discount;
-                        break;
-                    case TSHIRT:
-                        price += 30 * it.getNb() * discount;
-                        break;
-                    default:
-                        break;
-                }
-
+            for (Item it : body.getItems()) {
+                price += it.getType().getPrice() * it.getNb() * discount;
             }
         }
 
-        try {
-            if (price > body.getType().getMaxPrice()) {
-                throw new Exception("Price (" + price + ") is too high for " + body.getType().getText());
-            }
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        if (price > body.getType().getMaxPrice()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price (" + price + ") is too high for " + body.getType().getText());
         }
+
 
         return discount;
     }
