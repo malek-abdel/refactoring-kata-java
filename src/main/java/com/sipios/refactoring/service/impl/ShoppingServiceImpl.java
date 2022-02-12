@@ -19,56 +19,23 @@ public class ShoppingServiceImpl implements ShoppingService {
     public double calculateItemsPrice(Body body) {
         double price = 0;
 
-        Date date = new Date();
-        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Paris"));
-        cal.setTime(date);
-
         if (body.getType() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
+
+        if (body.getItems() == null) {
+            return price;
+        }
+
+        Date date = new Date();
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Paris"));
+        cal.setTime(date);
 
         double discount = body.getType().getDiscount();
 
         // Compute total amount depending on the types and quantity of product and
         // if we are in winter or summer discounts periods
-        if (
-            !(
-                cal.get(Calendar.DAY_OF_MONTH) < 15 &&
-                    cal.get(Calendar.DAY_OF_MONTH) > 5 &&
-                    cal.get(Calendar.MONTH) == 5
-            ) &&
-                !(
-                    cal.get(Calendar.DAY_OF_MONTH) < 15 &&
-                        cal.get(Calendar.DAY_OF_MONTH) > 5 &&
-                        cal.get(Calendar.MONTH) == 0
-                )
-        ) {
-            if (body.getItems() == null) {
-                return 0;
-            }
-
-            for (int i = 0; i < body.getItems().length; i++) {
-                Item it = body.getItems()[i];
-
-                switch (it.getType()) {
-                    case DRESS:
-                        price += 50 * it.getNb() * discount;
-                        break;
-                    case JACKET:
-                        price += 100 * it.getNb() * discount;
-                        break;
-                    case TSHIRT:
-                        price += 30 * it.getNb() * discount;
-                        break;
-                    default:
-                        break;
-                }
-
-            }
-        } else {
-            if (body.getItems() == null) {
-                return 0;
-            }
+        if (isDiscountPeriod(cal)) {
 
             for (int i = 0; i < body.getItems().length; i++) {
                 Item it = body.getItems()[i];
@@ -87,6 +54,25 @@ public class ShoppingServiceImpl implements ShoppingService {
                         break;
                 }
             }
+        } else {
+            for (int i = 0; i < body.getItems().length; i++) {
+                Item it = body.getItems()[i];
+
+                switch (it.getType()) {
+                    case DRESS:
+                        price += 50 * it.getNb() * discount;
+                        break;
+                    case JACKET:
+                        price += 100 * it.getNb() * discount;
+                        break;
+                    case TSHIRT:
+                        price += 30 * it.getNb() * discount;
+                        break;
+                    default:
+                        break;
+                }
+
+            }
         }
 
         try {
@@ -99,4 +85,12 @@ public class ShoppingServiceImpl implements ShoppingService {
 
         return discount;
     }
+
+    private static boolean isDiscountPeriod(Calendar calendarDate) {
+        return (calendarDate.get(Calendar.DAY_OF_MONTH) < 15 &&
+            calendarDate.get(Calendar.DAY_OF_MONTH) > 5 &&
+            (calendarDate.get(Calendar.MONTH) == Calendar.JUNE) ||
+            calendarDate.get(Calendar.MONTH) == Calendar.JANUARY);
+    }
+
 }
