@@ -17,23 +17,17 @@ public class ShoppingServiceImpl implements ShoppingService {
 
     @Override
     public double calculateItemsPrice(Body body) {
-        double p = 0;
-        double d;
+        double price = 0;
 
         Date date = new Date();
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Paris"));
         cal.setTime(date);
 
-        // Compute discount for customer
-        if (body.getType().equals("STANDARD_CUSTOMER")) {
-            d = 1;
-        } else if (body.getType().equals("PREMIUM_CUSTOMER")) {
-            d = 0.9;
-        } else if (body.getType().equals("PLATINUM_CUSTOMER")) {
-            d = 0.5;
-        } else {
+        if (body.getType() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
+
+        double discount = body.getType().getDiscount();
 
         // Compute total amount depending on the types and quantity of product and
         // if we are in winter or summer discounts periods
@@ -56,16 +50,20 @@ public class ShoppingServiceImpl implements ShoppingService {
             for (int i = 0; i < body.getItems().length; i++) {
                 Item it = body.getItems()[i];
 
-                if (it.getType().equals("TSHIRT")) {
-                    p += 30 * it.getNb() * d;
-                } else if (it.getType().equals("DRESS")) {
-                    p += 50 * it.getNb() * d;
-                } else if (it.getType().equals("JACKET")) {
-                    p += 100 * it.getNb() * d;
+                switch (it.getType()) {
+                    case DRESS:
+                        price += 50 * it.getNb() * discount;
+                        break;
+                    case JACKET:
+                        price += 100 * it.getNb() * discount;
+                        break;
+                    case TSHIRT:
+                        price += 30 * it.getNb() * discount;
+                        break;
+                    default:
+                        break;
                 }
-                // else if (it.getType().equals("SWEATSHIRT")) {
-                //     price += 80 * it.getNb();
-                // }
+
             }
         } else {
             if (body.getItems() == null) {
@@ -75,41 +73,30 @@ public class ShoppingServiceImpl implements ShoppingService {
             for (int i = 0; i < body.getItems().length; i++) {
                 Item it = body.getItems()[i];
 
-                if (it.getType().equals("TSHIRT")) {
-                    p += 30 * it.getNb() * d;
-                } else if (it.getType().equals("DRESS")) {
-                    p += 50 * it.getNb() * 0.8 * d;
-                } else if (it.getType().equals("JACKET")) {
-                    p += 100 * it.getNb() * 0.9 * d;
+                switch (it.getType()) {
+                    case TSHIRT:
+                        price += 30 * it.getNb() * discount;
+                        break;
+                    case DRESS:
+                        price += 50 * it.getNb() * 0.8 * discount;
+                        break;
+                    case JACKET:
+                        price += 100 * it.getNb() * 0.9 * discount;
+                        break;
+                    default:
+                        break;
                 }
-                // else if (it.getType().equals("SWEATSHIRT")) {
-                //     price += 80 * it.getNb();
-                // }
             }
         }
 
         try {
-            if (body.getType().equals("STANDARD_CUSTOMER")) {
-                if (p > 200) {
-                    throw new Exception("Price (" + p + ") is too high for standard customer");
-                }
-            } else if (body.getType().equals("PREMIUM_CUSTOMER")) {
-                if (p > 800) {
-                    throw new Exception("Price (" + p + ") is too high for premium customer");
-                }
-            } else if (body.getType().equals("PLATINUM_CUSTOMER")) {
-                if (p > 2000) {
-                    throw new Exception("Price (" + p + ") is too high for platinum customer");
-                }
-            } else {
-                if (p > 200) {
-                    throw new Exception("Price (" + p + ") is too high for standard customer");
-                }
+            if (price > body.getType().getMaxPrice()) {
+                throw new Exception("Price (" + price + ") is too high for " + body.getType().getText());
             }
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
 
-        return d;
+        return discount;
     }
 }
