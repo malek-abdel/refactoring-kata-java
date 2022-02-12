@@ -3,6 +3,9 @@ package com.sipios.refactoring.controller;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
+
+import com.sipios.refactoring.model.Body;
+import com.sipios.refactoring.model.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,7 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RequestMapping("/shopping")
 public class ShoppingController {
 
-    private Logger logger = LoggerFactory.getLogger(ShoppingController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ShoppingController.class);
 
     @PostMapping
     public String getPrice(@RequestBody Body b) {
@@ -114,63 +117,5 @@ public class ShoppingController {
         }
 
         return String.valueOf(p);
-    }
-}
-
-class Body {
-
-    private Item[] items;
-    private String type;
-
-    public Body(Item[] is, String t) {
-        this.items = is;
-        this.type = t;
-    }
-
-    public Body() {}
-
-    public Item[] getItems() {
-        return items;
-    }
-
-    public void setItems(Item[] items) {
-        this.items = items;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-}
-
-class Item {
-
-    private String type;
-    private int nb;
-
-    public Item() {}
-
-    public Item(String type, int quantity) {
-        this.type = type;
-        this.nb = quantity;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public int getNb() {
-        return nb;
-    }
-
-    public void setNb(int nb) {
-        this.nb = nb;
     }
 }
