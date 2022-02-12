@@ -17,14 +17,14 @@ public class ShoppingServiceImpl implements ShoppingService {
 
     @Override
     public double calculateItemsPrice(Body body) {
-        double price = 0;
+        double totalPrice = 0;
 
         if (body.getType() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
         }
 
         if (body.getItems() == null) {
-            return price;
+            return totalPrice;
         }
 
 
@@ -39,20 +39,20 @@ public class ShoppingServiceImpl implements ShoppingService {
         if (isDiscountPeriod(cal)) {
 
             for (Item it : body.getItems()) {
-                price += it.getType().getPrice() * it.getNb() * discount * it.getType().getDiscountPeriodRate();
+                totalPrice += it.getType().getPrice() * it.getNb() * discount * it.getType().getDiscountPeriodRate();
             }
         } else {
             for (Item it : body.getItems()) {
-                price += it.getType().getPrice() * it.getNb() * discount;
+                totalPrice += it.getType().getPrice() * it.getNb() * discount;
             }
         }
 
-        if (price > body.getType().getMaxPrice()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price (" + price + ") is too high for " + body.getType().getText());
+        if (totalPrice > body.getType().getMaxPrice()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Price (" + totalPrice + ") is too high for " + body.getType().getText());
         }
 
 
-        return discount;
+        return totalPrice;
     }
 
     private static boolean isDiscountPeriod(Calendar calendarDate) {
